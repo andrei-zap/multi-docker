@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install: 
+  - docker build -t andrei-zap/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run andrei-zap/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t andrei-zap/multi-client ./client
+  - docker build -t andrei-zap/multi-nginx ./nginx
+  - docker build -t andrei-zap/multi-server ./server
+  - docker build -t andrei-zap/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push andrei-zap/multi-client
+  - docker push andrei-zap/multi-nginx
+  - docker push andrei-zap/multi-server
+  - docker push andrei-zap/multi-worker
+
