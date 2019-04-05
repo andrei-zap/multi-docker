@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t andreizap/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run andreizap/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t andreizap/multi-client ./client
+  - docker build -t andreizap/multi-nginx ./nginx
+  - docker build -t andreizap/multi-server ./server
+  - docker build -t andreizap/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push andreizap/multi-client
+  - docker push andreizap/multi-nginx
+  - docker push andreizap/multi-server
+  - docker push andreizap/multi-worker
+
